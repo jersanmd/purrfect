@@ -13,23 +13,25 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:purrfect/controller/pet_controller.dart';
 
+import '../controller/pet_controller.dart';
 import '../model/pet.dart';
 
-class RegisterNewPetScreen extends StatefulWidget {
-  const RegisterNewPetScreen({super.key});
+class UpdatePetScreen extends StatefulWidget {
+  const UpdatePetScreen({super.key, required this.petId, required this.pet});
+
+  final String petId;
+  final Pet pet;
 
   @override
-  State<RegisterNewPetScreen> createState() => _RegisterNewPetScreenState();
+  State<UpdatePetScreen> createState() => _UpdatePetScreenState();
 }
 
-class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
+class _UpdatePetScreenState extends State<UpdatePetScreen> {
   PetController _petController = Get.find<PetController>();
 
   final ownerListCoolDropDownButtonController = DropdownController();
 
-  String _petId = '';
   final TextEditingController _nameEditingController = TextEditingController();
   final RxString _bDate = ''.obs;
   final RxString _gender = 'Male'.obs;
@@ -45,7 +47,15 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
     // TODO: implement initState
     super.initState();
 
-    _petId = DateTime.now().millisecondsSinceEpoch.toString();
+    _nameEditingController.text = widget.pet.petName;
+    _bDate.value = widget.pet.petBdate;
+    _gender.value = widget.pet.petGender;
+    _breedEditingController.text = widget.pet.petBreed;
+    _typeEditingController.text = widget.pet.petType;
+    _petController.imageDownloadUrl.value = widget.pet.petImage;
+    _ownerID.value = widget.pet.petOwnerID;
+    _notesEditingController.text = widget.pet.petNotes;
+    _isActive.value = widget.pet.isActive.toLowerCase() == 'true';
   }
 
   @override
@@ -66,11 +76,11 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
           foregroundColor: Colors.black,
           backgroundColor: Colors.white,
           elevation: 0,
-          title: const Text('Register New Pet'),
+          title: const Text('Update Pet Information'),
           actions: [
             InkWell(
               onTap: () {
-                Pet newPet = Pet(
+                Pet updatePetInformation = Pet(
                     petName: _nameEditingController.text,
                     petBdate: _bDate.value,
                     petGender: _gender.value,
@@ -81,7 +91,7 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
                     petNotes: _notesEditingController.text,
                     isActive: '${_isActive.value}');
 
-                _showAlertDialog(context, newPet);
+                _showAlertDialog(context, updatePetInformation, widget.petId);
               },
               child: const Padding(
                 padding: EdgeInsets.only(right: 16),
@@ -103,8 +113,7 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
                         image: _petController.image == null
                             ? DecorationImage(
                                 fit: BoxFit.cover,
-                                image: AssetImage(
-                                    'assets/images/image_placeholder.png'))
+                                image: NetworkImage(widget.pet.petImage))
                             : DecorationImage(
                                 fit: BoxFit.cover,
                                 image: FileImage(_petController.image!)),
@@ -134,7 +143,7 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
         ));
   }
 
-  _showAlertDialog(BuildContext context, Pet newPet) {
+  _showAlertDialog(BuildContext context, Pet newPetInformation, String petId) {
     Widget cancelButton = TextButton(
       child: Text("Cancel"),
       onPressed: () {
@@ -145,14 +154,15 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
       child: Text("Confirm"),
       onPressed: () {
         _petController
-            .addPet(newPet)
+            .updatePetDetails(newPetInformation, petId)
+            .whenComplete(() => Navigator.pop(context))
             .whenComplete(() => Navigator.pop(context))
             .whenComplete(() => Navigator.pop(context));
       },
     );
 
     AlertDialog alert = AlertDialog(
-      title: Text("Register new pet"),
+      title: Text("Update pet information"),
       content: Text("Would you like to continue?"),
       actions: [
         cancelButton,
@@ -207,9 +217,17 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
                       value: snap.id));
                 }
 
+                int currentOwnerLocation = 0;
+                for (int x = 0; x < ownerProfileItems.length; x++) {
+                  if (widget.pet.petOwnerID == ownerProfileItems[x].value) {
+                    currentOwnerLocation = x;
+                    break;
+                  }
+                }
+
                 return DropdownButtonHideUnderline(
                   child: CoolDropdown(
-                      defaultItem: ownerProfileItems[0],
+                      defaultItem: ownerProfileItems[currentOwnerLocation],
                       dropdownList: ownerProfileItems,
                       controller: ownerListCoolDropDownButtonController,
                       onChange: (item) {
@@ -234,7 +252,7 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
           const Gap(8),
           CalendarDatePicker2(
             config: CalendarDatePicker2Config(),
-            value: [],
+            value: [DateTime.parse(widget.pet.petBdate)],
             onValueChanged: (dates) {
               _bDate.value = dates[0].toString();
             },
@@ -354,7 +372,7 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
       setState(() {
         _petController.image = img;
         Navigator.pop(context);
-        _petController.uploadFile(_petId);
+        _petController.uploadFile(widget.petId);
       });
     } on PlatformException catch (e) {
       // print(e);

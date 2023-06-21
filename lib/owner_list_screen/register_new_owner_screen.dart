@@ -1,7 +1,16 @@
+import 'dart:io';
+
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:purrfect/controller/owner_controller.dart';
+import 'package:image_cropper/image_cropper.dart';
+
+import '../model/owner.dart';
 
 class RegisterNewOwnerScreen extends StatefulWidget {
   const RegisterNewOwnerScreen({super.key});
@@ -13,10 +22,25 @@ class RegisterNewOwnerScreen extends StatefulWidget {
 class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
   final TextEditingController _phoneCodeEditingController =
       TextEditingController();
-  final TextEditingController _phoneNumberEditingController =
-      TextEditingController();
 
   RxInt phoneNumberLength = 1.obs;
+  final OwnerController _ownerController = Get.find<OwnerController>();
+
+  String ownerId = '';
+  final TextEditingController _nameTextEditingController =
+      TextEditingController();
+  final TextEditingController _emailTextEditingController =
+      TextEditingController();
+  final TextEditingController _phoneNumberEditingController =
+      TextEditingController();
+  final TextEditingController _addressTextEditingController =
+      TextEditingController();
+  final TextEditingController _cityTextEditingController =
+      TextEditingController();
+  final TextEditingController _zipTextEditingController =
+      TextEditingController();
+  RxBool isActive = true.obs;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -24,12 +48,24 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
 
     _phoneCodeEditingController.text = "+63";
     _phoneNumberEditingController.text = "9";
+
+    ownerId = DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+
+    _ownerController.image = null;
+    _ownerController.uploadTask = null;
+    _ownerController.imageDownloadUrl.value = '';
+    _ownerController.uploadStatus.value = 'Tap Image to Upload Photo.';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: floatingStatusBottom(),
         appBar: AppBar(
           foregroundColor: Colors.black,
           backgroundColor: Colors.white,
@@ -38,7 +74,17 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
           actions: [
             InkWell(
               onTap: () {
-                print('New Owner Registering....');
+                Owner newOwner = Owner(
+                    ownerName: _nameTextEditingController.text,
+                    ownerEmail: _emailTextEditingController.text,
+                    ownerImage: _ownerController.imageDownloadUrl.toString(),
+                    ownerMobileNo: '0${_phoneNumberEditingController.text}',
+                    ownerAddress: _addressTextEditingController.text,
+                    ownerCity: _cityTextEditingController.text,
+                    ownerZip: _zipTextEditingController.text,
+                    isActive: '${isActive.value}');
+
+                _showAlertDialog(context, newOwner);
               },
               child: Padding(
                 padding: EdgeInsets.only(right: 8, left: 8),
@@ -52,18 +98,31 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
             child: Column(
               children: [
                 const Gap(12),
-                Container(
-                  width: 150,
-                  height: 150,
-                  decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300, width: 1),
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(100)),
-                  child: const Center(child: Text('Tap to select image')),
+                InkWell(
+                  onTap: (() => _showModalBottomSheet(context)),
+                  child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                          image: _ownerController.image == null
+                              ? DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: AssetImage(
+                                      'assets/images/image_placeholder.png'))
+                              : DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: FileImage(_ownerController.image!)),
+                          border:
+                              Border.all(color: Colors.grey.shade300, width: 1),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(100))),
                 ),
+                Obx(() => Text(_ownerController.uploadStatus.value)),
                 const Gap(24),
-                textFieldFormat('Email address', 'Please enter email address'),
-                textFieldFormat('Full name', 'First Last'),
+                textFieldFormat('Email address', 'Please enter email address',
+                    _emailTextEditingController, TextInputType.emailAddress),
+                textFieldFormat('Full name', 'First Last',
+                    _nameTextEditingController, TextInputType.name),
                 phoneNumberTextFieldFormat(),
                 addressTextField(),
                 Row(
@@ -72,11 +131,141 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                     postalCodeTextField()
                   ],
                 ),
+                const Gap(16),
+                floatingStatusBottom(),
                 Row()
               ],
             ),
           ),
         ));
+  }
+
+  _showAlertDialog(BuildContext context, Owner newOwner) {
+    Widget cancelButton = TextButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text("Confirm"),
+      onPressed: () {
+        _ownerController
+            .addOwner(newOwner)
+            .whenComplete(() => Navigator.pop(context))
+            .whenComplete(() => Navigator.pop(context));
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("Register new owner"),
+      content: Text("Would you like to continue?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Future _pickImage(ImageSource source) async {
+    try {
+      final image = await ImagePicker().pickImage(source: source);
+      if (image == null) return;
+
+      File? img = File(image.path);
+      img = await _cropImage(imageFile: img);
+      setState(() {
+        _ownerController.image = img;
+        Navigator.pop(context);
+        _ownerController.uploadFile(ownerId);
+      });
+    } on PlatformException catch (e) {
+      // print(e);
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _showModalBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+        builder: ((context) => DraggableScrollableSheet(
+            expand: false,
+            initialChildSize: 0.25,
+            maxChildSize: 0.26,
+            minChildSize: 0.2,
+            builder: ((context, scrollController) => SingleChildScrollView(
+                  controller: scrollController,
+                  child: modalContents(),
+                )))));
+  }
+
+  Widget modalContents() {
+    return Column(
+      children: [
+        const Gap(10),
+        Container(
+          width: 60,
+          height: 7,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5), color: Colors.grey),
+        ),
+        const Gap(20),
+        browseGallery(
+            FluentIcons.content_view_gallery_24_filled, 'Browse Gallery'),
+        const Gap(10),
+        useCamera(FluentIcons.camera_24_filled, 'Use Camera'),
+      ],
+    );
+  }
+
+  Widget browseGallery(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 50),
+      child: ElevatedButton(
+          onPressed: () => {_pickImage(ImageSource.gallery)},
+          style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.black),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Icon(icon), const Gap(10), Text(text)],
+          )),
+    );
+  }
+
+  Widget useCamera(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 50),
+      child: ElevatedButton(
+          onPressed: () => {_pickImage(ImageSource.camera)},
+          style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.black),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Icon(icon), const Gap(10), Text(text)],
+          )),
+    );
+  }
+
+  Future<File?> _cropImage({required File imageFile}) async {
+    CroppedFile? croppedImage =
+        await ImageCropper().cropImage(sourcePath: imageFile.path);
+    if (croppedImage == null) return null;
+    return File(croppedImage.path);
   }
 
   Widget addressTextField() {
@@ -99,6 +288,8 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextField(
+                  keyboardType: TextInputType.text,
+                  controller: _addressTextEditingController,
                   decoration: InputDecoration.collapsed(
                       hintText: 'Please enter exact address'),
                 ),
@@ -130,6 +321,8 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextField(
+                  keyboardType: TextInputType.text,
+                  controller: _cityTextEditingController,
                   decoration: InputDecoration.collapsed(
                       hintText: 'City/Municipality of the address'),
                 ),
@@ -161,6 +354,8 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextField(
+                  controller: _zipTextEditingController,
+                  keyboardType: TextInputType.number,
                   decoration:
                       InputDecoration.collapsed(hintText: 'Postal Code'),
                 ),
@@ -256,7 +451,11 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
         ));
   }
 
-  Widget textFieldFormat(String title, String placeholder) {
+  Widget textFieldFormat(
+      String title,
+      String placeholder,
+      TextEditingController textEditingController,
+      TextInputType textInputType) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 36),
       child: Column(
@@ -275,6 +474,8 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: TextField(
+                  keyboardType: textInputType,
+                  controller: textEditingController,
                   decoration: InputDecoration.collapsed(hintText: placeholder),
                 ),
               ),
@@ -305,7 +506,11 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                   fontWeight: FontWeight.w500),
             ),
             Spacer(),
-            CupertinoSwitch(value: true, onChanged: (bool newValue) {})
+            Obx(() => CupertinoSwitch(
+                value: isActive.value,
+                onChanged: (bool newValue) {
+                  isActive.value = newValue;
+                }))
           ],
         ),
       ),

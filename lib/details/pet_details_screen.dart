@@ -5,61 +5,66 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:purrfect/controller/pet_controller.dart';
+import 'package:purrfect/model/pet.dart';
+import 'package:purrfect/pet_list_screen/update_pet_screen.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   const PetDetailsScreen({
     super.key,
-    required this.petID,
+    required this.petId,
+    required this.pet,
   });
 
-  final String petID;
+  final String petId;
+  final Pet pet;
 
   @override
   State<PetDetailsScreen> createState() => _PetDetailsScreenState();
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
+  PetController _petController = Get.find<PetController>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: floatingStatusBottom(),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        title: const Text('Details'),
-      ),
-      body: StreamBuilder(
-          stream: FirebaseFirestore.instance
-              .collection('tbl_pet')
-              .doc(widget.petID)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              var userDocument = snapshot.data;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  petImageInfo(userDocument!['PetImage']),
-                  petDetailsInfo(
-                      userDocument['PetName'],
-                      userDocument['PetType'],
-                      userDocument['PetBreed'],
-                      userDocument['PetBdate'],
-                      userDocument['PetGender'],
-                      userDocument['PetNotes']),
-                  const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 54, vertical: 8),
-                      child: Divider(color: Colors.black)),
-                  ownerDetailsInfo(userDocument['PetOwnerID'])
-                ],
-              );
-            } else {
-              return const Center(child: Text('Data not found...'));
-            }
-          }),
-    );
+        floatingActionButton: floatingStatusBottom(),
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          title: const Text('Details'),
+          actions: [
+            InkWell(
+              onTap: () {
+                Get.to(UpdatePetScreen(petId: widget.petId, pet: widget.pet));
+              },
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Center(child: Text('Edit')),
+              ),
+            )
+          ],
+        ),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            petImageInfo(widget.pet.petImage),
+            petDetailsInfo(
+                widget.pet.petName,
+                widget.pet.petType,
+                widget.pet.petBreed,
+                widget.pet.petBdate,
+                widget.pet.petGender,
+                widget.pet.petNotes),
+            const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 54, vertical: 8),
+                child: Divider(color: Colors.black)),
+            ownerDetailsInfo(widget.pet.petOwnerID)
+          ],
+        ));
   }
 
   Widget petImageInfo(String imageLink) {
@@ -74,10 +79,32 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            petName,
-            style: const TextStyle(
-                fontSize: 22, color: Colors.black, fontWeight: FontWeight.w600),
+          Row(
+            children: [
+              Text(
+                petName,
+                style: const TextStyle(
+                    fontSize: 22,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: () {
+                  _showAlertDialog(context, widget.pet, widget.petId);
+                },
+                child: Row(
+                  children: [
+                    Icon(
+                      FluentIcons.delete_48_regular,
+                      color: Colors.black,
+                      size: 32,
+                    ),
+                    Text('Remove Pet')
+                  ],
+                ),
+              )
+            ],
           ),
           const Gap(8),
           Row(
@@ -85,7 +112,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               const Icon(Icons.pets),
               const Gap(10),
               Text(
-                '$petType - $petBreed',
+                '$petBreed',
                 style: const TextStyle(fontSize: 16),
               )
             ],
@@ -96,7 +123,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               const Icon(FluentIcons.calendar_checkmark_24_filled),
               const Gap(10),
               Text(
-                'Born in $petBDate',
+                'Born in ${DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(petBDate))}',
                 style: const TextStyle(fontSize: 16),
               )
             ],
@@ -127,6 +154,41 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  _showAlertDialog(BuildContext context, Pet pet, String petId) {
+    Widget cancelButton = TextButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text("Confirm"),
+      onPressed: () {
+        _petController
+            .removePet(petId)
+            .whenComplete(() => Navigator.pop(context))
+            .whenComplete(() => Navigator.pop(context));
+      },
+    );
+
+    AlertDialog alert = AlertDialog(
+      title: Text("Remove ${pet.petName}"),
+      content: Text("Would you like to continue?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 
@@ -217,7 +279,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   fontWeight: FontWeight.w500),
             ),
             Spacer(),
-            CupertinoSwitch(value: true, onChanged: (bool newValue) {})
+            CupertinoSwitch(
+                value: widget.pet.isActive.toLowerCase() == 'true',
+                onChanged: (bool newValue) {
+                  _petController
+                      .updatePetActivityStatus(widget.petId, newValue)
+                      .whenComplete(() => Navigator.pop(context));
+                })
           ],
         ),
       ),

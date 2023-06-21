@@ -4,6 +4,8 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:purrfect/details/owner_details_screen.dart';
+import 'package:purrfect/model/owner.dart';
 import 'package:purrfect/owner_list_screen/register_new_owner_screen.dart';
 
 class OwnerListScreen extends StatefulWidget {
@@ -103,6 +105,7 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
           child: StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('tbl_petowner')
+                .orderBy('OwnerName')
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
@@ -112,124 +115,75 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
                     DocumentSnapshot documentSnapshot =
                         snapshot.data!.docs[index];
                     return InkWell(
-                      onTap: () {},
+                      onTap: () {
+                        Owner owner = Owner.fromFirestore(documentSnapshot);
+                        Get.to(OwnerDetailsScreen(
+                            ownerId: documentSnapshot.id, owner: owner));
+                      },
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: SizedBox(
-                          width: Get.width,
-                          height: 175,
-                          // decoration: const BoxDecoration(color: Colors.red),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 24, right: 12),
-                                child: Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(25),
-                                      child: CachedNetworkImage(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        child: Card(
+                          child: SizedBox(
+                            width: Get.width,
+                            height: 200,
+                            // decoration: const BoxDecoration(color: Colors.red),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Gap(12),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 24, right: 12),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(25),
+                                        child: CachedNetworkImage(
+                                          height: 50,
+                                          width: 50,
+                                          fit: BoxFit.cover,
+                                          imageUrl:
+                                              documentSnapshot['OwnerImage'],
+                                        ),
+                                      ),
+                                      const Gap(8),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(documentSnapshot['OwnerName'],
+                                              style: const TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 16)),
+                                          Text(documentSnapshot['OwnerEmail']),
+                                        ],
+                                      ),
+                                      const Spacer(),
+                                      const SizedBox(
                                         height: 50,
                                         width: 50,
-                                        fit: BoxFit.cover,
-                                        imageUrl:
-                                            documentSnapshot['OwnerImage'],
-                                      ),
-                                    ),
-                                    const Gap(8),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(documentSnapshot['OwnerName'],
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 16)),
-                                        Text(documentSnapshot['OwnerEmail']),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    const SizedBox(
-                                      height: 50,
-                                      width: 50,
-                                      child: Icon(
-                                        FluentIcons.edit_24_filled,
-                                        color: Colors.black,
-                                      ),
-                                    )
-                                  ],
+                                        child: Icon(
+                                          FluentIcons.edit_24_filled,
+                                          color: Colors.black,
+                                        ),
+                                      )
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 36),
-                                child: Text('Pets:'),
-                              ),
-                              SizedBox(
-                                width: Get.width,
-                                height: 50,
-                                // color: Colors.amberAccent,
-                                child: StreamBuilder(
-                                  stream: FirebaseFirestore.instance
-                                      .collection('tbl_pet')
-                                      .snapshots(),
-                                  builder: (context, snapshot) {
-                                    DocumentSnapshot documentSnapshot =
-                                        snapshot.data!.docs[index];
-                                    if (snapshot.hasData) {
-                                      return ListView.builder(
-                                        padding:
-                                            const EdgeInsets.only(left: 24),
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: 5,
-                                        itemBuilder: (context, index) {
-                                          return InkWell(
-                                            onTap: () {},
-                                            child: SizedBox(
-                                              width: 180,
-                                              // color: Colors.blue,
-                                              child: Row(
-                                                children: [
-                                                  CachedNetworkImage(
-                                                    imageUrl: documentSnapshot[
-                                                        'PetImage'],
-                                                    width: 75,
-                                                  ),
-                                                  const Gap(5),
-                                                  Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(documentSnapshot[
-                                                          'PetName']),
-                                                      Text(
-                                                          '${documentSnapshot['PetType']} - ${documentSnapshot['PetBreed']}')
-                                                    ],
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    } else {
-                                      return const Center(
-                                          child: Text('No pet yet.'));
-                                    }
-                                  },
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 16, horizontal: 36),
+                                  child: Text('Pets:'),
                                 ),
-                              ),
-                              const Gap(24),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: Get.width / 4),
-                                child: Divider(
-                                  color: Colors.grey,
-                                ),
-                              )
-                            ],
+                                SizedBox(
+                                    width: Get.width,
+                                    height: 50,
+                                    // color: Colors.amberAccent,
+                                    child:
+                                        _petStreamBuilder(documentSnapshot.id)),
+                              ],
+                            ),
                           ),
                         ),
                       ),
@@ -243,6 +197,53 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
               }
             },
           )),
+    );
+  }
+
+  Widget _petStreamBuilder(String ownerId) {
+    return StreamBuilder(
+      stream: FirebaseFirestore.instance
+          .collection('tbl_pet')
+          .where('PetOwnerID', isEqualTo: ownerId)
+          .snapshots(),
+      builder: (context, snapshot2) {
+        if (snapshot2.hasData && snapshot2.data!.size > 0) {
+          return ListView.builder(
+            padding: const EdgeInsets.only(left: 24),
+            scrollDirection: Axis.horizontal,
+            itemCount: snapshot2.data!.size,
+            itemBuilder: (context, index) {
+              DocumentSnapshot documentSnapshot2 = snapshot2.data!.docs[index];
+              return InkWell(
+                onTap: () {},
+                child: SizedBox(
+                  width: 180,
+                  // color: Colors.blue,
+                  child: Row(
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: documentSnapshot2['PetImage'],
+                        width: 75,
+                      ),
+                      const Gap(5),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(documentSnapshot2['PetName']),
+                          Text(
+                              '${documentSnapshot2['PetType']} - ${documentSnapshot2['PetBreed']}')
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        } else {
+          return const Center(child: Text('No pet yet.'));
+        }
+      },
     );
   }
 }

@@ -5,7 +5,10 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:purrfect/controller/home_screen_controller.dart';
+import 'package:purrfect/details/pet_details_screen.dart';
+import 'package:purrfect/model/pet.dart';
 import 'package:purrfect/owner_list_screen/owner_list_screen.dart';
 import 'package:purrfect/pet_list_screen/pet_list_screen.dart';
 import 'package:purrfect/user_profile_screen/user_profile_screen.dart';
@@ -295,94 +298,111 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) {
                         DocumentSnapshot documentSnapshot =
                             snapshot.data!.docs[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 3, vertical: 3),
-                          child: SizedBox(
-                            width: Get.width,
-                            // height: 450,
-                            // color: Colors.blueGrey,
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: Get.width,
-                                  height: 200,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: CachedNetworkImage(
-                                        fit: BoxFit.cover,
-                                        imageUrl: documentSnapshot['PetImage']),
-                                  ),
-                                ),
-                                const Gap(12),
-                                Row(
+
+                        if (documentSnapshot['IsActive']
+                                .toString()
+                                .toLowerCase() !=
+                            'true') {
+                          return Container();
+                        } else {
+                          return InkWell(
+                            onTap: () {
+                              Pet petDetails =
+                                  Pet.fromFirestore(documentSnapshot);
+                              Get.to(PetDetailsScreen(
+                                  petId: documentSnapshot.id, pet: petDetails));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 3, vertical: 3),
+                              child: SizedBox(
+                                width: Get.width,
+                                // height: 450,
+                                // color: Colors.blueGrey,
+                                child: Column(
                                   children: [
-                                    SizedBox(
-                                      width: Get.width - 200,
-                                      child: Text(
-                                          '${documentSnapshot['PetName']}',
-                                          style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w700)),
-                                    ),
-                                    const Spacer(),
                                     Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.black,
-                                          borderRadius:
-                                              BorderRadius.circular(100)),
-                                      width: 150,
-                                      height: 50,
-                                      child: const Center(
-                                        child: Text(
-                                          'View',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w600),
-                                        ),
+                                      width: Get.width,
+                                      height: 200,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: CachedNetworkImage(
+                                            fit: BoxFit.cover,
+                                            imageUrl:
+                                                documentSnapshot['PetImage']),
                                       ),
-                                    )
-                                  ],
-                                ),
-                                const Gap(10),
-                                Column(
-                                  children: [
+                                    ),
+                                    const Gap(12),
                                     Row(
                                       children: [
-                                        Icon(Icons.pets_outlined),
-                                        Gap(10),
-                                        Text(
-                                          '${documentSnapshot['PetType']} - ${documentSnapshot['PetBreed']}',
-                                          style: TextStyle(fontSize: 16),
+                                        SizedBox(
+                                          width: Get.width - 200,
+                                          child: Text(
+                                              '${documentSnapshot['PetName']}',
+                                              style: const TextStyle(
+                                                  fontSize: 24,
+                                                  fontWeight: FontWeight.w700)),
+                                        ),
+                                        const Spacer(),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.black,
+                                              borderRadius:
+                                                  BorderRadius.circular(100)),
+                                          width: 150,
+                                          height: 50,
+                                          child: const Center(
+                                            child: Text(
+                                              'View',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600),
+                                            ),
+                                          ),
                                         )
                                       ],
                                     ),
-                                    Row(
+                                    const Gap(10),
+                                    Column(
                                       children: [
-                                        Icon(Icons.calendar_today),
-                                        Gap(10),
-                                        Text(
-                                          '${documentSnapshot['PetBdate']}',
-                                          style: TextStyle(fontSize: 16),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.pets_outlined),
+                                            Gap(10),
+                                            Text(
+                                              '${documentSnapshot['PetType']} - ${documentSnapshot['PetBreed']}',
+                                              style: TextStyle(fontSize: 16),
+                                            )
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.calendar_today),
+                                            Gap(10),
+                                            Text(
+                                              '${DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(documentSnapshot['PetBdate']))}',
+                                              style: TextStyle(fontSize: 16),
+                                            )
+                                          ],
                                         )
                                       ],
-                                    )
+                                    ),
+                                    const Gap(12),
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: Get.width / 3),
+                                      child: Divider(
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                    const Gap(6)
                                   ],
                                 ),
-                                const Gap(12),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: Get.width / 3),
-                                  child: Divider(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                const Gap(6)
-                              ],
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                     );
                   } else {

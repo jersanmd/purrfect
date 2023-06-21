@@ -4,8 +4,11 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:purrfect/details/pet_details_screen.dart';
 import 'package:purrfect/pet_list_screen/register_new_pet_screen.dart';
+
+import '../model/pet.dart';
 
 class PetListScreen extends StatefulWidget {
   const PetListScreen({super.key});
@@ -42,8 +45,8 @@ class _PetListScreenState extends State<PetListScreen> {
               ),
             ),
             searchAndFilterRow(),
-            _listOfPetsFilteredWithTypes(),
-            _listOfPetsFilteredWithTypes()
+            _listOfPetsFilteredWithTypes('Dog'),
+            _listOfPetsFilteredWithTypes('Cat')
           ],
         )),
       ),
@@ -100,23 +103,23 @@ class _PetListScreenState extends State<PetListScreen> {
     );
   }
 
-  Widget _listOfPetsFilteredWithTypes() {
+  Widget _listOfPetsFilteredWithTypes(String petType) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
-            children: const [
+            children: [
               Text(
-                'Dogs',
-                style: TextStyle(
+                petType,
+                style: const TextStyle(
                     color: Colors.black,
                     fontSize: 16,
                     fontWeight: FontWeight.w600),
               ),
-              Spacer(),
-              Text(
+              const Spacer(),
+              const Text(
                 'See all',
                 style: TextStyle(
                     color: Colors.grey,
@@ -131,8 +134,10 @@ class _PetListScreenState extends State<PetListScreen> {
           height: 390,
           // color: Colors.red,
           child: StreamBuilder(
-            stream:
-                FirebaseFirestore.instance.collection('tbl_pet').snapshots(),
+            stream: FirebaseFirestore.instance
+                .collection('tbl_pet')
+                .where('PetType', isEqualTo: petType)
+                .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.hasData) {
                 return ListView.builder(
@@ -144,7 +149,9 @@ class _PetListScreenState extends State<PetListScreen> {
                         snapshot.data!.docs[index];
                     return InkWell(
                       onTap: () {
-                        Get.to(PetDetailsScreen(petID: documentSnapshot.id));
+                        Pet pet = Pet.fromFirestore(documentSnapshot);
+                        Get.to(PetDetailsScreen(
+                            petId: documentSnapshot.id, pet: pet));
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
@@ -156,12 +163,37 @@ class _PetListScreenState extends State<PetListScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(5),
-                                child: CachedNetworkImage(
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                    imageUrl: documentSnapshot['PetImage']),
+                              Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(5),
+                                    child: CachedNetworkImage(
+                                        height: 200,
+                                        width: Get.width,
+                                        fit: BoxFit.cover,
+                                        imageUrl: documentSnapshot['PetImage']),
+                                  ),
+                                  documentSnapshot['IsActive']
+                                              .toString()
+                                              .toLowerCase() !=
+                                          'true'
+                                      ? Container(
+                                          margin:
+                                              const EdgeInsets.only(top: 60),
+                                          width: Get.width,
+                                          height: 50,
+                                          decoration: BoxDecoration(
+                                              color: Colors.black87),
+                                          child: Center(
+                                            child: Text(
+                                              'INACTIVE',
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                          ),
+                                        )
+                                      : Container(),
+                                ],
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -183,7 +215,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                             const Icon(Icons.pets_outlined),
                                             const Gap(10),
                                             Text(
-                                              '${documentSnapshot['PetType']} - ${documentSnapshot['PetBreed']}',
+                                              '${documentSnapshot['PetBreed']}',
                                               style:
                                                   const TextStyle(fontSize: 16),
                                             )
@@ -194,7 +226,7 @@ class _PetListScreenState extends State<PetListScreen> {
                                             const Icon(Icons.calendar_today),
                                             const Gap(10),
                                             Text(
-                                              '${documentSnapshot['PetBdate']}',
+                                              '${DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(documentSnapshot['PetBdate']))}',
                                               style:
                                                   const TextStyle(fontSize: 16),
                                             )
