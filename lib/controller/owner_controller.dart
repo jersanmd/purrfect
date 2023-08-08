@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:purrfect/model/owner.dart';
 
 class OwnerController extends RxController {
@@ -18,7 +17,7 @@ class OwnerController extends RxController {
   }
 
   Future<void> uploadFile(String ownerId) async {
-    final path = 'files/${ownerId}';
+    final path = 'files/$ownerId';
     final ref = FirebaseStorage.instance.ref().child(path);
 
     uploadTask = ref.putFile(image!);
@@ -51,5 +50,12 @@ class OwnerController extends RxController {
     await ref
         .update(owner.toFirestore())
         .whenComplete(() => Get.snackbar('Owner', 'Owner details updated.'));
+  }
+
+  Future<void> updateOwnerMobileNo(String ownerId, String newNumber) async {
+    final ref =
+        FirebaseFirestore.instance.collection('tbl_petowner').doc(ownerId);
+    await ref.update({'OwnerMobileNo': newNumber}).whenComplete(() =>
+        Get.snackbar('Owner Mobile Number', 'Owner Mobile Number Updated'));
   }
 }

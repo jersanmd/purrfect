@@ -8,10 +8,10 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:purrfect/controller/home_screen_controller.dart';
 import 'package:purrfect/details/pet_details_screen.dart';
+import 'package:purrfect/home/pets_lister_types.dart';
 import 'package:purrfect/model/pet.dart';
 import 'package:purrfect/owner_list_screen/owner_list_screen.dart';
 import 'package:purrfect/pet_list_screen/pet_list_screen.dart';
-import 'package:purrfect/user_profile_screen/user_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,7 +27,10 @@ class _HomeScreenState extends State<HomeScreen> {
     FluentIcons.people_team_24_regular,
   ];
 
-  HomeScreenController _homeScreenController = Get.find<HomeScreenController>();
+  final HomeScreenController _homeScreenController =
+      Get.find<HomeScreenController>();
+
+  final TextEditingController _petEditingController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
             const OwnerListScreen(),
           ],
         ));
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _petEditingController.text = '';
   }
 
   Widget _homePage() {
@@ -73,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (int index) {
           _homeScreenController.selectedIndex.value = index;
           _homeScreenController.pageController.animateToPage(index,
-              duration: Duration(seconds: 1), curve: Curves.ease);
+              duration: const Duration(seconds: 1), curve: Curves.ease);
         },
         dotIndicatorColor: Colors.black,
         enableFloatingNavBar: true,
@@ -105,8 +116,8 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           SizedBox(
             width: Get.width - 50,
-            child: Row(
-              children: const [
+            child: const Row(
+              children: [
                 Text(
                   'Hi, ',
                   style: TextStyle(color: Colors.grey, fontSize: 18),
@@ -140,8 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: Get.width,
                     height: 50,
                   ),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       SizedBox(
                         width: 50,
                         height: 50,
@@ -196,51 +207,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 3, vertical: 3),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20)),
-                      width: 150,
-                      child: Stack(
-                        alignment: AlignmentDirectional.topCenter,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: CachedNetworkImage(
-                                width: 150,
-                                height: 200,
-                                fit: BoxFit.cover,
-                                imageUrl: documentSnapshot['image']),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(top: 24),
-                            child: Text(
-                              '${documentSnapshot['name']}',
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w400,
-                                  shadows: [
-                                    Shadow(
-                                        // bottomLeft
-                                        offset: Offset(-2, -2),
-                                        color: Colors.black12),
-                                    Shadow(
-                                        // bottomRight
-                                        offset: Offset(2, -2),
-                                        color: Colors.black12),
-                                    Shadow(
-                                        // topRight
-                                        offset: Offset(2, 2),
-                                        color: Colors.black12),
-                                    Shadow(
-                                        // topLeft
-                                        offset: Offset(-2, 2),
-                                        color: Colors.black12),
-                                  ]),
+                    child: InkWell(
+                      onTap: () {
+                        Get.to(PetsListerTypes(
+                            petType: '${documentSnapshot['name']}'));
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20)),
+                        width: 150,
+                        child: Stack(
+                          alignment: AlignmentDirectional.topCenter,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: CachedNetworkImage(
+                                  width: 150,
+                                  height: 200,
+                                  fit: BoxFit.cover,
+                                  imageUrl: documentSnapshot['image']),
                             ),
-                          ),
-                        ],
+                            Padding(
+                              padding: const EdgeInsets.only(top: 24),
+                              child: Text(
+                                '${documentSnapshot['name']}',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w400,
+                                    shadows: [
+                                      Shadow(
+                                          // bottomLeft
+                                          offset: Offset(-2, -2),
+                                          color: Colors.black12),
+                                      Shadow(
+                                          // bottomRight
+                                          offset: Offset(2, -2),
+                                          color: Colors.black12),
+                                      Shadow(
+                                          // topRight
+                                          offset: Offset(2, 2),
+                                          color: Colors.black12),
+                                      Shadow(
+                                          // topLeft
+                                          offset: Offset(-2, 2),
+                                          color: Colors.black12),
+                                    ]),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );
@@ -264,8 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Text(
                     'Popular',
                     style: TextStyle(
@@ -321,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 // color: Colors.blueGrey,
                                 child: Column(
                                   children: [
-                                    Container(
+                                    SizedBox(
                                       width: Get.width,
                                       height: 200,
                                       child: ClipRRect(
@@ -368,18 +385,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                       children: [
                                         Row(
                                           children: [
-                                            Icon(Icons.pets_outlined),
-                                            Gap(10),
+                                            const Icon(Icons.pets_outlined),
+                                            const Gap(10),
                                             Text(
                                               '${documentSnapshot['PetType']} - ${documentSnapshot['PetBreed']}',
-                                              style: TextStyle(fontSize: 16),
+                                              style:
+                                                  const TextStyle(fontSize: 16),
                                             )
                                           ],
                                         ),
                                         Row(
                                           children: [
-                                            Icon(Icons.calendar_today),
-                                            Gap(10),
+                                            const Icon(Icons.calendar_today),
+                                            const Gap(10),
                                             Text(
                                               '${DateFormat('EEEE, MMM d, yyyy').format(DateTime.parse(documentSnapshot['PetBdate']))}',
                                               style: TextStyle(fontSize: 16),
@@ -392,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Padding(
                                       padding: EdgeInsets.symmetric(
                                           horizontal: Get.width / 3),
-                                      child: Divider(
+                                      child: const Divider(
                                         color: Colors.grey,
                                       ),
                                     ),

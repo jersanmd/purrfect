@@ -43,7 +43,6 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     _phoneCodeEditingController.text = "+63";
@@ -54,7 +53,6 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
 
   @override
   void dispose() {
-    // TODO: implement dispose
     super.dispose();
 
     _ownerController.image = null;
@@ -86,7 +84,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
 
                 _showAlertDialog(context, newOwner);
               },
-              child: Padding(
+              child: const Padding(
                 padding: EdgeInsets.only(right: 8, left: 8),
                 child: Center(child: Text('Confirm')),
               ),
@@ -105,7 +103,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                       height: 150,
                       decoration: BoxDecoration(
                           image: _ownerController.image == null
-                              ? DecorationImage(
+                              ? const DecorationImage(
                                   fit: BoxFit.cover,
                                   image: AssetImage(
                                       'assets/images/image_placeholder.png'))
@@ -133,7 +131,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                 ),
                 const Gap(16),
                 floatingStatusBottom(),
-                Row()
+                const Row()
               ],
             ),
           ),
@@ -142,13 +140,13 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
 
   _showAlertDialog(BuildContext context, Owner newOwner) {
     Widget cancelButton = TextButton(
-      child: Text("Cancel"),
+      child: const Text("Cancel"),
       onPressed: () {
         Navigator.pop(context);
       },
     );
     Widget continueButton = TextButton(
-      child: Text("Confirm"),
+      child: const Text("Confirm"),
       onPressed: () {
         _ownerController
             .addOwner(newOwner)
@@ -158,8 +156,8 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
     );
 
     AlertDialog alert = AlertDialog(
-      title: Text("Register new owner"),
-      content: Text("Would you like to continue?"),
+      title: const Text("Register new owner"),
+      content: const Text("Would you like to continue?"),
       actions: [
         cancelButton,
         continueButton,
@@ -188,7 +186,6 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
         _ownerController.uploadFile(ownerId);
       });
     } on PlatformException catch (e) {
-      // print(e);
       Navigator.of(context).pop();
     }
   }
@@ -275,7 +272,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('House/Unit/Flr #, Bldg Name, Blk or Lot #'),
+          const Text('House/Unit/Flr #, Bldg Name, Blk or Lot #'),
           const Gap(4),
           Container(
             width: Get.width,
@@ -290,7 +287,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                 child: TextField(
                   keyboardType: TextInputType.text,
                   controller: _addressTextEditingController,
-                  decoration: InputDecoration.collapsed(
+                  decoration: const InputDecoration.collapsed(
                       hintText: 'Please enter exact address'),
                 ),
               ),
@@ -308,7 +305,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('City/Municipality'),
+          const Text('City/Municipality'),
           const Gap(4),
           Container(
             width: Get.width / 2 - 30,
@@ -323,7 +320,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                 child: TextField(
                   keyboardType: TextInputType.text,
                   controller: _cityTextEditingController,
-                  decoration: InputDecoration.collapsed(
+                  decoration: const InputDecoration.collapsed(
                       hintText: 'City/Municipality of the address'),
                 ),
               ),
@@ -341,7 +338,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Postal Code'),
+          const Text('Postal Code'),
           const Gap(4),
           Container(
             width: Get.width / 2 - 50,
@@ -357,7 +354,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
                   controller: _zipTextEditingController,
                   keyboardType: TextInputType.number,
                   decoration:
-                      InputDecoration.collapsed(hintText: 'Postal Code'),
+                      const InputDecoration.collapsed(hintText: 'Postal Code'),
                 ),
               ),
             ),
@@ -374,7 +371,7 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Phone Number'),
+            const Text('Phone Number'),
             const Gap(16),
             Row(
               children: [
@@ -492,20 +489,20 @@ class _RegisterNewOwnerScreenState extends State<RegisterNewOwnerScreen> {
       borderRadius: BorderRadius.circular(8),
       color: Colors.black,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         width: Get.width - 28,
         height: 60,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
+            const Text(
               'Active',
               style: TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w500),
             ),
-            Spacer(),
+            const Spacer(),
             Obx(() => CupertinoSwitch(
                 value: isActive.value,
                 onChanged: (bool newValue) {

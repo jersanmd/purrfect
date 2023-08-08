@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:get/get.dart';
 import 'package:purrfect/bindings/initial_bindings.dart';
 import 'firebase_options.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSwatch(accentColor: Colors.lightBlue)),
       debugShowCheckedModeBanner: false,
       getPages: AppRoutes.routes(),
+      builder: EasyLoading.init(),
     );
   }
 }

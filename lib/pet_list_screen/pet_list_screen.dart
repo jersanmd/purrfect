@@ -69,8 +69,8 @@ class _PetListScreenState extends State<PetListScreen> {
                     width: Get.width,
                     height: 50,
                   ),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       SizedBox(
                         width: 50,
                         height: 50,

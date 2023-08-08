@@ -49,6 +49,7 @@ dependencies:
   cool_dropdown: ^2.1.0
   image_picker: ^0.8.9
   image_cropper: ^4.0.0
+  flutter_easyloading: ^3.0.5
 
 dev_dependencies:
   flutter_test:

@@ -20,7 +20,7 @@ class PetController extends RxController {
   }
 
   Future<void> uploadFile(String petId) async {
-    final path = 'files/${petId}';
+    final path = 'files/$petId';
     final ref = FirebaseStorage.instance.ref().child(path);
 
     uploadTask = ref.putFile(image!);

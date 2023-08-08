@@ -136,13 +136,13 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
 
   _showAlertDialog(BuildContext context, Pet newPet) {
     Widget cancelButton = TextButton(
-      child: Text("Cancel"),
+      child: const Text("Cancel"),
       onPressed: () {
         Navigator.pop(context);
       },
     );
     Widget continueButton = TextButton(
-      child: Text("Confirm"),
+      child: const Text("Confirm"),
       onPressed: () {
         _petController
             .addPet(newPet)
@@ -152,8 +152,8 @@ class _RegisterNewPetScreenState extends State<RegisterNewPetScreen> {
     );
 
     AlertDialog alert = AlertDialog(
-      title: Text("Register new pet"),
-      content: Text("Would you like to continue?"),
+      title: const Text("Register new pet"),
+      content: const Text("Would you like to continue?"),
       actions: [
         cancelButton,
         continueButton,

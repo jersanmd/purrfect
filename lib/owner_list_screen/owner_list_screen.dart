@@ -27,7 +27,7 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Row(
               children: [
-                const Text('Pet Owners Management',
+                const Text('Owners Management',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 const Spacer(),
@@ -64,8 +64,8 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
                     width: Get.width,
                     height: 50,
                   ),
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       SizedBox(
                         width: 50,
                         height: 50,
@@ -191,7 +191,7 @@ class _OwnerListScreenState extends State<OwnerListScreen> {
                   },
                 );
               } else {
-                return Center(
+                return const Center(
                   child: Text('Cannot find users.'),
                 );
               }
