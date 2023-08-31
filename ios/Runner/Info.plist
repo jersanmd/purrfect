@@ -41,16 +41,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow to enable fetching image from Photos.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Allow to enable camera.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Allow access on microphone.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 </dict>
